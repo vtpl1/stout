@@ -1,0 +1,16 @@
+{
+    "name": "stout",
+    "version-string": "0.1",
+    "dependencies": [
+        "picojson",
+        "rapidjson",
+        "glog",
+        "gflags",
+        "boost",
+        "curl",
+        "boost-functional",
+        "boost-lexical-cast",
+        "boost-variant",
+        "gtest"
+    ]
+}
