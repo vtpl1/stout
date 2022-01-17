@@ -44,7 +44,9 @@
 #include <stout/overload.hpp>
 #include <stout/path.hpp>
 #include <stout/preprocessor.hpp>
+#ifndef WIN32
 #include <stout/proc.hpp>
+#endif
 #include <stout/protobuf.hpp>
 #include <stout/recordio.hpp>
 #include <stout/representation.hpp>
