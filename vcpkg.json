@@ -4,13 +4,18 @@
     "dependencies": [
         "picojson",
         "rapidjson",
+        "libarchive",
         "glog",
         "gflags",
-        "boost",
-        "curl",
+        "boost-circular-buffer",
+        "boost-icl",
+        "boost-uuid",
         "boost-functional",
         "boost-lexical-cast",
         "boost-variant",
-        "gtest"
+        "elfio",
+        "gtest",
+        "protobuf",
+        "curl"
     ]
 }

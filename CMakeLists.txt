@@ -5,21 +5,19 @@ cmake_minimum_required(VERSION 3.21)
 project(stout)
 message(STATUS "VCPKG_INSTALLED_DIR " ${VCPKG_INSTALLED_DIR})
 
-set(CMAKE_CXX_STANDARD 17)
-
-find_package(boost REQUIRED functional get_pointer lexical_cast variant)
+find_package(Boost REQUIRED)
 find_package(glog REQUIRED)
-# find_package(picojson REQUIRED)
 find_package(RapidJSON REQUIRED)
-find_package(CURL CONFIG REQUIRED)
-find_path(PICOJSON_INCLUDE_DIRS "picojson.h")
-find_package(GTest REQUIRED)
+find_path(PICOJSON_INCLUDE_DIRS "picojson/picojson.h")
 find_package(gflags REQUIRED)
+find_package(elfio REQUIRED)
+find_package(LibArchive REQUIRED)
 
+find_package(CURL CONFIG REQUIRED)
+find_package(GTest REQUIRED)
+find_package(Protobuf REQUIRED COMPONENTS libprotobuf protoc)
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS include/stout/*.hpp)
-
 set(PICOJSON_INCLUDE_DIRS ${PICOJSON_INCLUDE_DIRS}/picojson)
-message(STATUS PICOJSON_INCLUDE_DIRS ${PICOJSON_INCLUDE_DIRS})
 
 add_library(stout
     ${SOURCE_FILES}
@@ -43,6 +41,7 @@ endif(WIN32)
 target_include_directories(stout
     PUBLIC include
     PUBLIC ${PICOJSON_INCLUDE_DIRS}
+    PUBLIC ${LibArchive_INCLUDE_DIRS}
 )
 
 target_link_libraries(stout
@@ -51,6 +50,10 @@ target_link_libraries(stout
     PUBLIC glog::glog
     PUBLIC gflags::gflags
     PUBLIC rapidjson
+    PUBLIC rt
+    PUBLIC protobuf::libprotobuf
+    PUBLIC elfio::elfio
+    PUBLIC ${LibArchive_LIBRARIES}
 )
 
 if(WIN32)
@@ -68,59 +71,43 @@ endif(WIN32)
 set_property(TARGET stout PROPERTY
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
-# list(APPEND TEST_SOURCE_EXCLUDE_FILES
-#     svn_tests.cpp
-#     protobuf_tests.cpp
-#     archiver_tests.cpp
-#     os/systems_tests.cpp
-#     os/signals_tests.cpp
-# )
-
 file(GLOB_RECURSE TEST_SOURCE_FILES
     CONFIGURE_DEPENDS
     tests/*.cpp
     tests/os/*.cpp
 )
 
-# list(REMOVE_ITEM TEST_SOURCE_FILES
-#     svn_tests.cpp
-#     protobuf_tests.cpp
-#     archiver_tests.cpp
-#     os/systems_tests.cppa
-#     os/signals_tests.cpp
+# list(FILTER TEST_SOURCE_FILES
+#     EXCLUDE REGEX
+#     ".*archiver_tests\\.cpp$"
 # )
-
-list(FILTER TEST_SOURCE_FILES
-    EXCLUDE REGEX
-    ".*archiver_tests\\.cpp$"
-)
 
 list(FILTER TEST_SOURCE_FILES
     EXCLUDE REGEX
     ".*svn_tests\\.cpp$"
 )
 
-list(FILTER TEST_SOURCE_FILES
-    EXCLUDE REGEX
-    ".*protobuf_tests\\.cpp$"
-)
+# list(FILTER TEST_SOURCE_FILES
+#     EXCLUDE REGEX
+#     ".*protobuf_tests\\.cpp$"
+# )
 
-list(FILTER TEST_SOURCE_FILES
-    EXCLUDE REGEX
-    ".*proc_tests\\.cpp$"
-)
+# list(FILTER TEST_SOURCE_FILES
+#     EXCLUDE REGEX
+#     ".*proc_tests\\.cpp$"
+# )
 
-list(FILTER TEST_SOURCE_FILES
-    EXCLUDE REGEX
-    ".*systems_tests\\.cpp$"
-)
+# list(FILTER TEST_SOURCE_FILES
+#     EXCLUDE REGEX
+#     ".*systems_tests\\.cpp$"
+# )
 
-list(FILTER TEST_SOURCE_FILES
-    EXCLUDE REGEX
-    ".*signals_tests\\.cpp$"
-)
+# list(FILTER TEST_SOURCE_FILES
+#     EXCLUDE REGEX
+#     ".*signals_tests\\.cpp$"
+# )
 
-message(STATUS "ppppppppp" ${TEST_SOURCE_FILES})
+message(STATUS "ppppppppp: " ${TEST_SOURCE_FILES})
 
 add_executable(stout_test
     # tests/main.cpp
@@ -134,5 +121,14 @@ target_link_libraries(stout_test
     PUBLIC stout
 )
 
+protobuf_generate(
+    LANGUAGE cpp
+    TARGET stout_test
+    PROTOS ${CMAKE_SOURCE_DIR}/tests/protobuf_tests.proto
+)
+target_include_directories(stout_test
+    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
+    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/tests
+)
 set_property(TARGET stout_test PROPERTY
     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
